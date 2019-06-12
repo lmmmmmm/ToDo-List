@@ -17,11 +17,11 @@
               <div class="text item">
                 {{item.title}}
                 <span class="incoInfo">
-                  <i class="el-icon-check" @click="item.checked = true"></i>
+                  <i class="el-icon-check" @click="completed(item,index)"></i>
                   &nbsp;
                   <i class="el-icon-edit"></i>
                   &nbsp;
-                  <i class="el-icon-delete" @click="removeData(item)"></i>
+                  <i class="el-icon-delete" @click="removeData(item,key)"></i>
                 </span>
               </div>
             </el-card>
@@ -31,12 +31,12 @@
       <el-col :span="12" class="right">
         <h2>已完成</h2>
         <ul>
-          <li v-for="item in list" v-if="item.checked">
+          <li v-for="(item,key) in list" v-if="item.checked">
             <el-card class="box-card">
               <div class="text item">
                 {{item.title}}
                 <span class="incoInfo">
-                  <i class="el-icon-delete" @click="removeData(item)"></i>
+                  <i class="el-icon-delete" @click="removeData(item,key)"></i>
                 </span>
               </div>
             </el-card>
@@ -48,6 +48,7 @@
 </template>
 
 <script>
+import storage from "../storage/storage.js";
 export default {
   data() {
     return {
@@ -65,26 +66,42 @@ export default {
         title: this.data,
         checked: false
       });
+      storage.set("list", this.list);
       this.$message({ message: "添加成功", type: "success" });
       this.data = "";
     },
-    removeData(item) {
+    completed(item, key) {
+      item.checked = true;
+      storage.set("list", this.list);
+    },
+    removeData(item, key) {
       if (item.checked == false) {
-        this.$confirm("该事项正在进行, 是否删除?", "提示", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        }).then(() => {
-          this.list.splice(item.key, 1);
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
-          });
-        }).catch(() => {        
-        });
+        // this.$confirm("该事项正在进行, 是否删除?", "提示", {
+        //   confirmButtonText: "确定",
+        //   cancelButtonText: "取消",
+        //   type: "warning"
+        // })
+        //   .then(() => {
+        //     this.list.splice(item.key, 1);
+        //     storage.remove("list",key);
+        //     this.$message({
+        //       type: "success",
+        //       message: "删除成功!"
+        //     });
+        //   })
+        //   .catch(() => {});
+        this.list.splice(key, 1);
+        storage.remove("list", key);
       } else {
-        this.list.splice(item.key, 1);
+        this.list.splice(key, 1);
+        storage.remove("list", key);
       }
+    }
+  },
+  mounted() {
+    var data = storage.get("list");
+    if (data) {
+      this.list = data;
     }
   }
 };
@@ -126,5 +143,6 @@ li {
 .incoInfo {
   float: right;
   font-size: 18px;
+  cursor:pointer;
 }
 </style>
