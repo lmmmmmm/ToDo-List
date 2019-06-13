@@ -1,10 +1,36 @@
 <template>
   <div>
     <el-row style="margin-top:10px">
-      <el-col :span="6" :offset="8">
-        <el-input v-model="data" placeholder="请输入代办事项"></el-input>
+      <el-col :span="5" :offset="4">
+        <el-input v-model="data" placeholder="请输入代办事项" maxlength="12"></el-input>
       </el-col>
-      <el-col :span="2">
+
+      <el-col :span="1" :offset="1">
+        <el-time-select
+          placeholder="开始时间"
+          v-model="startTime"
+          :picker-options="{
+            start: '07:00',
+            step: '00:15',
+            end: '24:00',
+           }"
+        ></el-time-select>
+      </el-col>
+
+      <el-col :span="1" :offset="3">
+        <el-time-select
+          placeholder="结束时间"
+          v-model="endTime"
+          :picker-options="{
+            start: '07:00',
+            step: '00:15',
+            end: '24:00',
+            minTime: startTime
+          }"
+        ></el-time-select>
+      </el-col>
+
+      <el-col :span="1" :offset="3">
         <el-button type="success" @click="addData()" icon="el-icon-plus">添加</el-button>
       </el-col>
     </el-row>
@@ -15,11 +41,11 @@
           <li v-for="(item,key) in list" v-if="!item.checked">
             <el-card class="box-card">
               <div class="text item">
-                {{item.title}}
+                <span
+                  :class="[item.endTime < new Date().getHours() + '-' +  new Date().getMinutes()?express:'']"
+                >{{item.title}}&nbsp;&nbsp;({{item.startTime}} ~ {{item.endTime}})</span>
                 <span class="incoInfo">
                   <i class="el-icon-check" @click="completed(item,index)"></i>
-                  &nbsp;
-                  <i class="el-icon-edit"></i>
                   &nbsp;
                   <i class="el-icon-delete" @click="removeData(item,key)"></i>
                 </span>
@@ -34,7 +60,7 @@
           <li v-for="(item,key) in list" v-if="item.checked">
             <el-card class="box-card">
               <div class="text item">
-                {{item.title}}
+                <s>{{item.title}}&nbsp;&nbsp;({{item.startTime}} ~ {{item.endTime}})</s>
                 <span class="incoInfo">
                   <i class="el-icon-delete" @click="removeData(item,key)"></i>
                 </span>
@@ -53,7 +79,10 @@ export default {
   data() {
     return {
       data: "",
-      list: []
+      list: [],
+      startTime: "",
+      endTime: "",
+      express: "express"
     };
   },
   methods: {
@@ -62,41 +91,41 @@ export default {
         this.$message.error("请输入代码事项");
         return false;
       }
+
+      if (this.startTime == "") {
+        this.$message.error("请选择开始时间");
+        return false;
+      }
+
+      if (this.endTime == "") {
+        this.$message.error("请选择结束时间");
+        return false;
+      }
       this.list.push({
         title: this.data,
-        checked: false
+        checked: false,
+        startTime: this.startTime,
+        endTime: this.endTime
       });
       storage.set("list", this.list);
       this.$message({ message: "添加成功", type: "success" });
       this.data = "";
+      this.startTime = "";
+      this.endTime = "";
     },
     completed(item, key) {
       item.checked = true;
       storage.set("list", this.list);
     },
     removeData(item, key) {
-      if (item.checked == false) {
-        // this.$confirm("该事项正在进行, 是否删除?", "提示", {
-        //   confirmButtonText: "确定",
-        //   cancelButtonText: "取消",
-        //   type: "warning"
-        // })
-        //   .then(() => {
-        //     this.list.splice(item.key, 1);
-        //     storage.remove("list",key);
-        //     this.$message({
-        //       type: "success",
-        //       message: "删除成功!"
-        //     });
-        //   })
-        //   .catch(() => {});
-        this.list.splice(key, 1);
-        storage.remove("list", key);
-      } else {
-        this.list.splice(key, 1);
-        storage.remove("list", key);
-      }
+      this.list.splice(key, 1);
+      storage.remove("list", key);
     }
+    // calc(item) {
+    //   if (item.endTime > new Date()) {
+    //     return;
+    //   }
+    // }
   },
   mounted() {
     var data = storage.get("list");
@@ -143,6 +172,10 @@ li {
 .incoInfo {
   float: right;
   font-size: 18px;
-  cursor:pointer;
+  cursor: pointer;
+}
+
+.express {
+  color: red;
 }
 </style>

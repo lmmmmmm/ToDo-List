@@ -3,7 +3,10 @@
     <el-col :span="4">
       <p>TODO-LIST</p>
     </el-col>
-    <el-col :span="2" :offset="15" class="info">
+    <el-col :offset="6" :span="4">
+      <p>{{date}}</p>
+    </el-col>
+    <el-col :span="2" :offset="5" class="info">
       <span>
         <a href="https://stonhouse.top/" target="_blank">Bolg</a>
       </span>
@@ -15,7 +18,14 @@
 </template>
 
 <script>
-export default {};
+import dateUtils from "../util/DateUtils.js";
+export default {
+  data() {
+    return {
+      date: dateUtils.formartDate(new Date())
+    };
+  }
+};
 </script>
 
 <style>
